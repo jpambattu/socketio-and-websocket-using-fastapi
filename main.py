@@ -22,6 +22,16 @@ sio_asgi_app = ASGIApp(sio, app)
 # mounting to main application who receives traffic to route all connections form this endpoint to socketio instance
 app.mount("/socket.io", sio_asgi_app)
 
+@app.middleware("http")
+async def logging_middleware(request: Request, call_next):
+    response = Response("Internal server error", status_code=500)
+    print(request.base_url, request.client.host)
+    try:
+        response: Response = await call_next(request)
+    finally:
+        print(response.status_code,)
+    return response
+
 @app.get("/hello")
 def return_hello():
     return "hello world!"
